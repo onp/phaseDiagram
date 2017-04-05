@@ -1,3 +1,8 @@
+# angular stuff
+src/app/*.js*
+node_modules
+
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
