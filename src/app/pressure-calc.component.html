@@ -1,0 +1,17 @@
+<div>
+  <h2>Pressure Calculator</h2>
+  <div>
+    <label>Density: </label>
+    <input [(ngModel)]="density" (keyup)="calculatePressure()"/>
+    kg/m3
+  </div>
+  <div>
+    <label>Temperature: </label>
+    <input [(ngModel)]="temperature" (keyup)="calculatePressure()"/>
+    K
+  </div>
+  <div>
+    <label>Pressure: </label>
+    <span>{{pressure}} MPa</span>
+  </div>
+</div>
