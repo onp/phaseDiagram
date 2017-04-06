@@ -4,6 +4,7 @@ import { FormsModule }   from '@angular/forms';
 
 import { AppComponent }  from './app.component';
 import { PressureCalcComponent }  from './pressure-calc.component';
+import { IsobarPlotComponent } from './plot.component';
 
 @NgModule({
   imports:      [
@@ -12,7 +13,8 @@ import { PressureCalcComponent }  from './pressure-calc.component';
   ],
   declarations: [
     AppComponent,
-    PressureCalcComponent
+    PressureCalcComponent,
+    IsobarPlotComponent
   ],
   bootstrap:    [ AppComponent ]
 })

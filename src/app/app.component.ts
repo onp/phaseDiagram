@@ -6,6 +6,7 @@ import { Component } from '@angular/core';
     <h1>Ethylene EOS</h1>
     <p>Calculation based on Smukala, Span, and Wagner (2000)</p>
     <pressure-calculator></pressure-calculator>
+    <isobar-plot></isobar-plot>
   `,
 })
 export class AppComponent  {
