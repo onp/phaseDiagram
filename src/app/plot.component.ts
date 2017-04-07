@@ -18,80 +18,78 @@ export class IsobarPlotComponent implements OnInit{
     private ethyleneService: EthyleneService
   ) { }
 
-  transition(): void {
-    console.log("old def")
+  ngOnInit(): void {
+    this.createPlot();
   }
 
-  ngOnInit(): void {
-    let n = 20; // number of layers
-    let m = 200; // number of samples per layer
-    let k = 10; // number of bumps per layer
-
-    let stack = d3.stack().keys(d3.range(n)).offset(d3.stackOffsetWiggle);
-    let layers0 = stack(d3.transpose(d3.range(n).map(function() { return bumps(m, k); })));
-    let layers1 = stack(d3.transpose(d3.range(n).map(function() { return bumps(m, k); })));
-    let layers = layers0.concat(layers1);
-
-    let svg = d3.select("svg");
-    let width = +svg.attr("width");
-    let height = +svg.attr("height");
-
-    let x = d3.scaleLinear()
-        .domain([0, m - 1])
-        .range([0, width]);
-
-    let y = d3.scaleLinear()
-        .domain([d3.min(layers, stackMin), d3.max(layers, stackMax)])
-        .range([height, 0]);
-
-    let z = d3.interpolateCool;
-
-    let area = d3.area()
-        .x(function(d, i) { return x(i); })
-        .y0(function(d) { return y(d[0]); })
-        .y1(function(d) { return y(d[1]); });
-
-    svg.selectAll("path")
-      .data(layers0)
-      .enter().append("path")
-        .attr("d", area)
-        .attr("fill", function() { return z(Math.random()); });
-
-    function stackMax(layer: any) {
-      return d3.max(layer, function(d) { return d[1]; });
-    }
-
-    function stackMin(layer: any) {
-      return d3.min(layer, function(d) { return d[0]; });
-    }
-
-    function transition() {
-      var t;
-      d3.selectAll("path")
-        .data((t = layers1, layers1 = layers0, layers0 = t))
-        .transition()
-          .duration(2500)
-          .attr("d", area);
-    }
-
-    this.transition = transition;
-
-    // Inspired by Lee Byron’s test data generator.
-    function bumps(n: number, m: number) {
-      let a = [], i;
-      for (i = 0; i < n; ++i) a[i] = 0;
-      for (i = 0; i < m; ++i) bump(a, n);
-      return a;
-    }
-
-    function bump(a: number[], n: number) {
-      var x = 1 / (0.1 + Math.random()),
-          y = 2 * Math.random() - 0.5,
-          z = 10 / (0.1 + Math.random());
-      for (var i = 0; i < n; i++) {
-        var w = (i / n - y) * z;
-        a[i] += x * Math.exp(-w * w);
+  createData(): {temperature:number, density:number, pressure:number}[] {
+    let dat: {temperature:number,
+              density:number,
+              pressure:number}[]=[{temperature:10, density:10, pressure:10}];
+    for(let temp=100; temp<500; temp=temp+100){
+      for(let dens=10; dens<500; dens=dens+10){
+        dat.push({temperature:temp,
+                  density:dens,
+                  pressure:this.ethyleneService.pressure(dens,temp)});
       }
     }
+    return dat
+  }
+
+  createPlot(): void {
+    let svg = d3.select("svg");
+    let margin = {top: 20, right: 80, bottom: 30, left: 50};
+    let width = +svg.attr("width") - margin.left - margin.right;
+    let height = +svg.attr("height") - margin.top - margin.bottom;
+    let g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    let x = d3.scaleLinear().range([0, width])
+    let y = d3.scaleLinear().range([0, height])
+
+    let line = d3.line()
+                 .curve(d3.curveBasis)
+                 .x(function(d: any):number { return x(d.density); })
+                 .y(function(d: any) { return y(d.pressure); })
+
+    let data = this.createData()
+
+    let isotherms = d3.nest()
+                      .key(function(d:any) { return d.temperature; })
+                      .entries(data);
+
+    x.domain(d3.extent(data, function(d:any) { return d.density; }));
+    y.domain(d3.extent(data, function(d:any) { return d.pressure; }));
+    console.log(y.domain())
+
+    g.append("g")
+      .attr("class", "axis axis--x")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
+
+    g.append("g")
+      .attr("class", "axis axis--y")
+      .call(d3.axisLeft(y))
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", "0.71em")
+      .attr("fill", "#000")
+      .text("Pressure, kPa-a");
+
+    console.log(isotherms)
+    console.log(data)
+
+    let isotherm = g.selectAll(".isotherm")
+    .data(isotherms)
+    .enter().append("g")
+      .attr("class", "isotherm")
+      .attr("stroke", "black")
+      .attr("fill", "none");
+
+    isotherm.append("path")
+      .attr("class", "line")
+      .attr("d", function(d) { return line(d.values); })
+
+
   }
 }
