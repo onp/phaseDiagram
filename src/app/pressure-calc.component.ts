@@ -21,8 +21,10 @@ export class PressureCalcComponent implements OnInit{
   temperature = 105;
 
   pressure: number;
+  enthalpy: number;
 
   calculatePressure(): void {
     this.pressure = this.ethyleneService.pressure(this.density, this.temperature)/1000;
+    this.enthalpy = this.ethyleneService.enthalpy(this.density, this.temperature);
   }
 }
