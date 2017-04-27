@@ -108,7 +108,7 @@ export class EthyleneService {
     return ihe + rhe;
   }
 
-  pressure(density: number, temperature: number): number {
+  pressure_dt(density: number, temperature: number): number {
     // Units in kg/m3, K
     let delta = this.delta(density);
     let tau = this.tau(temperature);
@@ -119,7 +119,7 @@ export class EthyleneService {
     return p;
   }
 
-  enthalpy(density: number, temperature: number): number {
+  enthalpy_dt(density: number, temperature: number): number {
     // Units in kg/m3, K
     let delta = this.delta(density);
     let tau = this.tau(temperature);
@@ -129,4 +129,9 @@ export class EthyleneService {
 
     return h;
   }
+
+  temperature_ph(pressure: number, enthalpy: number): number {
+    return 0
+  }
+
 }

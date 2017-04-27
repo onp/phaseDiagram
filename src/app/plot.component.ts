@@ -30,7 +30,7 @@ export class IsobarPlotComponent implements OnInit{
       for(let dens=10; dens<500; dens=dens+10){
         dat.push({temperature:temp,
                   density:dens,
-                  pressure:this.ethyleneService.pressure(dens,temp)});
+                  pressure:this.ethyleneService.pressure_dt(dens,temp)});
       }
     }
     return dat

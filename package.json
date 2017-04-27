@@ -1,7 +1,7 @@
 {
-  "name": "angular-quickstart",
-  "version": "1.0.0",
-  "description": "QuickStart package.json from the documentation, supplemented with testing support",
+  "name": "phaseDiagram",
+  "version": "0.0.1",
+  "description": "Calculate and plot phase diagrams in the browser.",
   "scripts": {
     "build": "tsc -p src/",
     "build:watch": "tsc -p src/ -w",
