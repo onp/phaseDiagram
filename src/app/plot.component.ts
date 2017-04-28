@@ -8,9 +8,24 @@ declare var Module:any;
 
 @Component({
   selector: 'isobar-plot',
-  template: `
-    <svg width="960" height="500"></svg>
-  `,
+  template: ``,
+  styles:[`
+    .svg-container {
+        display: inline-block;
+        position: relative;
+        width: 100%;
+        padding-bottom: 100%; /* aspect ratio */
+        vertical-align: top;
+        overflow: hidden;
+    }
+    .svg-content-responsive {
+        display: inline-block;
+        position: absolute;
+        top: 10px;
+        left: 0;
+    }
+
+  `],
   providers: [PropertiesService]
 })
 export class IsobarPlotComponent implements OnInit{
@@ -63,10 +78,19 @@ export class IsobarPlotComponent implements OnInit{
   }
 
   createPlot(): void {
-    let svg = d3.select("svg");
-    let margin = {top: 20, right: 80, bottom: 30, left: 50};
-    let width = +svg.attr("width") - margin.left - margin.right;
-    let height = +svg.attr("height") - margin.top - margin.bottom;
+    let svg = d3.select("isobar-plot")
+                .append("div")
+                .classed("svg-container", true) //container class to make it responsive
+                .append("svg")
+                //responsive SVG needs these 2 attributes and no width and height attr
+                .attr("preserveAspectRatio", "xMinYMin meet")
+                .attr("viewBox", "0 0 960 500")
+                //class to make it responsive
+                .classed("svg-content-responsive", true);
+
+    let margin = {top: 20, right: 20, bottom: 30, left: 50};
+    let width = 960 - margin.left - margin.right;
+    let height = 500 - margin.top - margin.bottom;
     let g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     let x = d3.scaleLinear().range([0, width])
