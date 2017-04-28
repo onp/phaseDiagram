@@ -1,16 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 
-import { EthyleneService } from './ethylene.service';
+import { PropertiesService } from './properties.service';
 
 @Component({
   selector: 'pressure-calculator',
   templateUrl: './pressure-calc.component.html',
-  providers: [EthyleneService]
+  providers: [PropertiesService]
 })
 export class PressureCalcComponent implements OnInit{
 
   constructor(
-    private ethyleneService: EthyleneService
+    private propertiesService: PropertiesService
   ) { }
 
   ngOnInit(): void {
@@ -24,7 +24,7 @@ export class PressureCalcComponent implements OnInit{
   enthalpy: number;
 
   calculatePressure(): void {
-    this.pressure = this.ethyleneService.pressure_dt(this.density, this.temperature)/1000;
-    this.enthalpy = this.ethyleneService.enthalpy_dt(this.density, this.temperature);
+    this.pressure = this.propertiesService.ethylene("P", "D", +this.density, "T", +this.temperature)/1000;
+    this.enthalpy = this.propertiesService.ethylene("H", "D", +this.density, "T", +this.temperature)/1000;
   }
 }

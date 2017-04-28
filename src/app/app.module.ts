@@ -18,4 +18,6 @@ import { IsobarPlotComponent } from './plot.component';
   ],
   bootstrap:    [ AppComponent ]
 })
-export class AppModule { }
+export class AppModule {
+
+}
