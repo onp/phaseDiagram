@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'my-app',
   template: `
     <h1>Ethylene EOS</h1>
-    <p>Calculation based on Smukala, Span, and Wagner (2000)</p>
+    <p>Calculation based on Smukala, Span, and Wagner (2000), as implemented by <a href="http://www.coolprop.org/">CoolProp</a></p>
     <pressure-calculator></pressure-calculator>
     <isobar-plot></isobar-plot>
   `,

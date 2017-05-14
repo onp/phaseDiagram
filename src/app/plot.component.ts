@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 
 import { PropertiesService } from './properties.service';
+import { IsoplotDataService, PropSpace } from './isoplot-data.service';
 
 import * as d3 from 'd3';
 
@@ -9,28 +10,14 @@ declare var Module:any;
 @Component({
   selector: 'isobar-plot',
   template: ``,
-  styles:[`
-    .svg-container {
-        display: inline-block;
-        position: relative;
-        width: 100%;
-        padding-bottom: 100%; /* aspect ratio */
-        vertical-align: top;
-        overflow: hidden;
-    }
-    .svg-content-responsive {
-        display: inline-block;
-        position: absolute;
-        top: 10px;
-        left: 0;
-    }
-
-  `],
-  providers: [PropertiesService]
+  encapsulation: ViewEncapsulation.None,
+  styleUrls:["./plot.component.css"],
+  providers: [IsoplotDataService,PropertiesService]
 })
 export class IsobarPlotComponent implements OnInit{
 
   constructor(
+    private isoplotDataService: IsoplotDataService,
     private propertiesService: PropertiesService
   ) { }
 
@@ -38,88 +25,66 @@ export class IsobarPlotComponent implements OnInit{
     this.createPlot();
   }
 
-  createDataEnth(): {t:number, p:number, h:number}[] {
-    let dat: {t:number, p:number, h:number}[] = [];
-    for(let temp=100; temp<600; temp+=20){
-      for(let pres=1e2; pres<1e10; pres*=1.7){
-        let enth = this.propertiesService.ethylene("H", "P", pres, "T", temp)
-        if (isFinite(enth) && enth<1.2e6){
-          dat.push({t:temp, p:pres, h:enth});
-        }
-      }
-    }
-    return dat
-  }
-
-  createDataDens(): {d:number, p:number, h:number}[] {
-    let dat: {d:number, p:number, h:number}[] = [];
-    for(let dens=0.01; dens<1000; dens*=2){
-      for(let pres=1e2; pres<1e10; pres*=1.7){
-        let enth = this.propertiesService.ethylene("H", "P", pres, "D", dens)
-        if (isFinite(enth) && enth<1.2e6){
-          dat.push({d:dens, p:pres, h:enth});
-        }
-      }
-    }
-    return dat
-  }
-
-  createDataEntr(): {e:number, p:number, h:number}[] {
-    let dat: {e:number, p:number, h:number}[] = [];
-    for(let entr=-2000; entr<7000; entr+=400){
-      for(let pres=1e2; pres<1e10; pres*=1.7){
-        let enth = this.propertiesService.ethylene("H", "P", pres, "S", entr)
-        if (isFinite(enth) && enth<1.2e6){
-          dat.push({e:entr, p:pres, h:enth});
-        }
-      }
-    }
-    return dat
-  }
-
   createPlot(): void {
+    let xSize = 960;
+    let ySize = 500;
+    let margin = {top: 20, right: 20, bottom: 30, left: 50};
+    let width = xSize - margin.left - margin.right;
+    let height = ySize - margin.top - margin.bottom;
+
+    let bthis = this;
+
     let svg = d3.select("isobar-plot")
                 .append("div")
                 .classed("svg-container", true) //container class to make it responsive
                 .append("svg")
                 //responsive SVG needs these 2 attributes and no width and height attr
                 .attr("preserveAspectRatio", "xMinYMin meet")
-                .attr("viewBox", "0 0 960 500")
+                .attr("viewBox", `0 0 ${xSize} ${ySize}`)
                 //class to make it responsive
                 .classed("svg-content-responsive", true);
 
-    let margin = {top: 20, right: 20, bottom: 30, left: 50};
-    let width = 960 - margin.left - margin.right;
-    let height = 500 - margin.top - margin.bottom;
     let g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    let x = d3.scaleLinear().range([0, width])
-    let y = d3.scaleLog().range([height, 0])
+    let x = d3.scaleLinear().range([0, width]);
+    let y = d3.scaleLog().range([height, 0]);
 
     let line = d3.line()
                  .curve(d3.curveBasis)
-                 .x(function(d: any):number { return x(d.h); })
-                 .y(function(d: any) { return y(d.p); })
+                 .x(function(d: any) { return x(d.x); })
+                 .y(function(d: any) { return y(d.y); });
 
-    let data = this.createDataEnth()
-    let ddata = this.createDataDens()
-    let edata = this.createDataEntr()
+    let pressureSpace = new PropSpace("P",  1.5e2, 1e10, 50, "log");
+    let enthalpySpace = new PropSpace("H", -1e6, 1.2e6);
 
-    let isotherms = d3.nest()
-                      .key(function(d:any) { return d.t; })
-                      .entries(data);
+    let tdata = this.isoplotDataService.createData(new PropSpace("T",  100,  600, 15, "linear"),
+                                                   enthalpySpace, pressureSpace);
+    let ddata = this.isoplotDataService.createData(new PropSpace("D",  0.1, 1000, 10, "log"),
+                                                   enthalpySpace, pressureSpace);
+    let edata = this.isoplotDataService.createData(new PropSpace("S", -2000, 7000, 10, "linear"),
+                                                   enthalpySpace, pressureSpace);
 
-    let isopycnals = d3.nest()
-                      .key(function(d:any) { return d.d; })
+    let phasedata = this.isoplotDataService.createPhaseData(enthalpySpace,
+                                                            new PropSpace("P",  1.5e2, 1e10, 200, "log"));
+
+    let isotherms = d3.nest()         // Constant Temperature
+                     .key(function(d:any) { return d.iso; })
+                     .entries(tdata);
+
+    let isopycnals = d3.nest()       // Constant Density
+                      .key(function(d:any) { return d.iso; })
                       .entries(ddata);
 
-    let isentropes = d3.nest()
-                      .key(function(d:any) { return d.e; })
+    let isentropes = d3.nest()      // Constant Entropy
+                      .key(function(d:any) { return d.iso; })
                       .entries(edata);
 
+    let isophase = d3.nest()      // Phase Lines
+                      .key(function(d:any) { return d.iso; })
+                      .entries(phasedata);
 
-    x.domain(d3.extent(data, function(d:any) { return d.h; }));
-    y.domain(d3.extent(data, function(d:any) { return d.p; }));
+    x.domain(d3.extent(tdata, function(d:any) { return d.x; }));
+    y.domain(d3.extent(tdata, function(d:any) { return d.y; }));
 
     g.append("g")
       .attr("class", "axis axis--x")
@@ -140,12 +105,12 @@ export class IsobarPlotComponent implements OnInit{
     .data(isotherms)
     .enter().append("g")
       .attr("class", "isotherm")
-      .attr("stroke", "black")
+      .attr("stroke", "blue")
       .attr("fill", "none");
 
     isotherm.append("path")
       .attr("class", "line")
-      .attr("d", function(d) { return line(d.values); })
+      .attr("d", function(d) {return line(d.values); })
 
     let isopycnal = g.selectAll(".isopycnal")
     .data(isopycnals)
@@ -169,6 +134,45 @@ export class IsobarPlotComponent implements OnInit{
       .attr("class", "line")
       .attr("d", function(d) { return line(d.values); })
 
+    let phasebound = g.selectAll(".phase")
+    .data(isophase)
+    .enter().append("g")
+      .attr("class", "phase")
+      .attr("stroke", "black")
+      .attr("fill", "none");
+
+    phasebound.append("path")
+      .attr("class", "line")
+      .attr("d", function(d) { return line(d.values); })
+
+    let focus = g.append("g")
+        .attr("class","focus");
+      focus.append("line")
+        .attr("id", "xLine")
+      focus.append("line")
+        .attr("id", "yLine");
+
+    g.append("rect")
+      .attr('class', 'overlay')
+      .attr('width', xSize)
+      .attr('height', ySize)
+      .on('mousemove', function(){
+        let mouse = d3.mouse(d3.event.currentTarget);
+        let xCoord = x.invert(mouse[0]);
+        let yCoord = y.invert(mouse[1]);
+
+        //console.log(xCoord, yCoord);
+        //console.log(bthis.propertiesService.ethylene("T", "P", yCoord, "H", xCoord));
+
+        focus.select("#xLine")
+          .attr("x1", mouse[0]).attr("y1", y.range()[0])
+          .attr("x2", mouse[0]).attr("y2", y.range()[1])
+        focus.select("#yLine")
+          .attr("x1", x.range()[0]).attr("y1", mouse[1])
+          .attr("x2", x.range()[1]).attr("y2", mouse[1])
+
+
+      })
 
   }
 }
