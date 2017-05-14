@@ -43,6 +43,11 @@ export class IsoplotDataService {
   }
 
   createPhaseData(x:PropSpace, y:PropSpace): {x:number, y:number}[] {
+    let tcrit = this.propertiesService.ethylene("Tcrit", "", 0, "", 0)
+    let pcrit = this.propertiesService.ethylene("Pcrit", "", 0, "", 0)
+    let xcrit = this.propertiesService.ethylene(x.property, "T", tcrit, "P", pcrit)
+    let ycrit = this.propertiesService.ethylene(y.property, "T", tcrit, "P", pcrit)
+
     let dat: {x:number, y:number}[] = [];
     for(let i = y.min; i < y.max; i = y.step(i)){
       let val = this.propertiesService.ethylene(x.property, y.property, i, "Q", 1)
@@ -50,6 +55,7 @@ export class IsoplotDataService {
       if (isFinite(val) && val < x.max){
         dat.push({iso:1, x:val, y:i});
       } else {
+        dat.push({iso:1, x:xcrit, y:ycrit});
         break
       }
     }
@@ -59,6 +65,7 @@ export class IsoplotDataService {
       if (isFinite(val) && val < x.max){
         dat.push({iso:0, x:val, y:i});
       } else {
+        dat.push({iso:0, x:xcrit, y:ycrit});
         break
       }
     }
