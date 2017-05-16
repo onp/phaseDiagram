@@ -1,25 +1,9 @@
 import { Injectable } from '@angular/core';
 
 import { PropertiesService } from './properties.service';
+import { PropertySpace } from './property-space'
 
 declare var Module:any;
-
-export class PropSpace {
-  step(i:number): number {return i + 10};
-  constructor(readonly property: string,
-              readonly min: number,
-              readonly max: number,
-              readonly steps = 10,
-              readonly scaling = "linear"){
-    if (scaling == ("log" || "logarithmic")){
-      let stepsize = Math.pow(max / min, 1 / steps);
-      this.step = (i) => i * stepsize;
-    } else {
-      let stepsize = (max - min) / steps;
-      this.step = (i) => i + stepsize;
-    }
-  };
-}
 
 @Injectable()
 export class IsoplotDataService {
@@ -28,7 +12,7 @@ export class IsoplotDataService {
     private propertiesService: PropertiesService
   ) { };
 
-  createData(iso:PropSpace, x:PropSpace, y:PropSpace): {iso:number, x:number, y:number}[] {
+  createData(iso:PropertySpace, x:PropertySpace, y:PropertySpace): {iso:number, x:number, y:number}[] {
     let dat: {iso:number, x:number, y:number}[] = [];
 
     for(let i = iso.min; i < iso.max; i = iso.step(i)){
@@ -42,13 +26,13 @@ export class IsoplotDataService {
     return dat
   }
 
-  createPhaseData(x:PropSpace, y:PropSpace): {x:number, y:number}[] {
+  createPhaseData(x:PropertySpace, y:PropertySpace): {x:number, y:number}[] {
     let tcrit = this.propertiesService.ethylene("Tcrit", "", 0, "", 0)
     let pcrit = this.propertiesService.ethylene("Pcrit", "", 0, "", 0)
     let xcrit = this.propertiesService.ethylene(x.property, "T", tcrit, "P", pcrit)
     let ycrit = this.propertiesService.ethylene(y.property, "T", tcrit, "P", pcrit)
 
-    let dat: {x:number, y:number}[] = [];
+    let dat: {iso:number, x:number, y:number}[] = [];
     for(let i = y.min; i < y.max; i = y.step(i)){
       let val = this.propertiesService.ethylene(x.property, y.property, i, "Q", 1)
       console.log(val,i)

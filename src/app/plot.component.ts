@@ -1,7 +1,8 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 
 import { PropertiesService } from './properties.service';
-import { IsoplotDataService, PropSpace } from './isoplot-data.service';
+import { IsoplotDataService } from './isoplot-data.service';
+import { PropertySpace } from './property-space'
 
 import * as d3 from 'd3';
 
@@ -54,18 +55,18 @@ export class IsobarPlotComponent implements OnInit{
                  .x(function(d: any) { return x(d.x); })
                  .y(function(d: any) { return y(d.y); });
 
-    let pressureSpace = new PropSpace("P",  1.5e2, 1e10, 50, "log");
-    let enthalpySpace = new PropSpace("H", -1e6, 1.2e6);
+    let pressureSpace = new PropertySpace("P",  1.5e2, 1e10, 50, "log");
+    let enthalpySpace = new PropertySpace("H", -1e6, 1.2e6);
 
-    let tdata = this.isoplotDataService.createData(new PropSpace("T",  100,  600, 15, "linear"),
+    let tdata = this.isoplotDataService.createData(new PropertySpace("T",  100,  600, 15, "linear"),
                                                    enthalpySpace, pressureSpace);
-    let ddata = this.isoplotDataService.createData(new PropSpace("D",  0.1, 1000, 10, "log"),
+    let ddata = this.isoplotDataService.createData(new PropertySpace("D",  0.1, 1000, 10, "log"),
                                                    enthalpySpace, pressureSpace);
-    let edata = this.isoplotDataService.createData(new PropSpace("S", -2000, 7000, 10, "linear"),
+    let edata = this.isoplotDataService.createData(new PropertySpace("S", -2000, 7000, 10, "linear"),
                                                    enthalpySpace, pressureSpace);
 
     let phasedata = this.isoplotDataService.createPhaseData(enthalpySpace,
-                                                            new PropSpace("P",  1.5e2, 1e10, 200, "log"));
+                                                            new PropertySpace("P",  1.5e2, 1e10, 200, "log"));
 
     let isotherms = d3.nest()         // Constant Temperature
                      .key(function(d:any) { return d.iso; })
