@@ -5,6 +5,7 @@ import { FormsModule }   from '@angular/forms';
 import { AppComponent }  from './app.component';
 import { PressureCalcComponent }  from './pressure-calc.component';
 import { IsobarPlotComponent } from './plot.component';
+import { PropertySpaceComponent } from './property-space.component'
 
 @NgModule({
   imports:      [
@@ -14,7 +15,8 @@ import { IsobarPlotComponent } from './plot.component';
   declarations: [
     AppComponent,
     PressureCalcComponent,
-    IsobarPlotComponent
+    IsobarPlotComponent,
+    PropertySpaceComponent
   ],
   bootstrap:    [ AppComponent ]
 })
